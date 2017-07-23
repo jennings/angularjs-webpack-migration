@@ -2,10 +2,11 @@ var gulp = require('gulp')
 var streamqueue = require('streamqueue')
 var sourcemaps = require('gulp-sourcemaps')
 var concat = require('gulp-concat')
-var uglify = require('gulp-uglify')
 var pump = require('pump')
 var sass = require('gulp-sass')
 var angularTemplatecache = require('gulp-angular-templatecache')
+var webpackStream = require('webpack-stream')
+var webpackConfig = require('./webpack.config.js')
 
 var browserSync = require('browser-sync').create()
 
@@ -15,12 +16,9 @@ var input = {
     'src/**/*.scss',
   ],
   js: [
-    // The order the files are included is important, e.g., app.js needs
-    // to create our AngularJS module before the components add to it.
-    'node_modules/jquery/dist/jquery.js',
-    'node_modules/boostrap/dist/js/bootstrap.js',
-    'node_modules/angular/angular.js',
-    'src/app.js',
+    // The order no longer matters, since webpack bundles in the correct order.
+    // However, we need to list the files to watch so Browsersync knows when to
+    // reload.
     'src/**/*.js',
   ],
   templates: [
@@ -33,37 +31,37 @@ var input = {
 
 var output = {
   path: './dist/',
-  js: 'js/bundle.js',
+  js: "js/bundle.js",
   scss: 'css/bundle.scss',
   css: 'css/bundle.css',
 }
 
 gulp.task('default', ['serve'])
 
-gulp.task('js', function (done) {
+gulp.task('js', function () {
 
   // Using streamqueue so we are sure to include app.js to create the
   // AngularJS module before we add to its template cache.
   var scripts = streamqueue({ objectMode: true })
-  scripts.queue(gulp.src(input.js))
+
+  // We're using webpack to bundle the JavaScript files rather than manually
+  // concatenating and uglifying them. webpack automatically runs uglify during
+  // production builds.
+  scripts.queue(gulp.src(webpackConfig.entry)
+    .pipe(webpackStream(webpackConfig)))
+
+  // Templates are not yet part of the webpack bundle, so we still have to
+  // concat them manually
   scripts.queue(getTemplateStream())
 
-  pump(
-    [
-      scripts.done(),
-      sourcemaps.init(),
-      concat(output.js),
-      uglify(),
-      sourcemaps.write('./'),
-      gulp.dest(output.path),
-    ],
-    done
-  )
+  return scripts.done()
+    .pipe(concat(output.js))
+    .pipe(gulp.dest(output.path))
 })
 
 function getTemplateStream() {
   return gulp.src(input.templates)
-    .pipe(angularTemplatecache('templates.js', {
+    .pipe(angularTemplatecache('js/templates.js', {
       module: 'MyApp',
       standalone: false,
       root: '/js/components'

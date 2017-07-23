@@ -1,12 +1,9 @@
-;(function () {
+var angular = require('angular')
 
-  // We're trusting that this file is included after the MyApp module
-  // has been created.
+// For now, this file still assumes that the MyApp module exists.
 
-  angular.module('MyApp').component('appTitle', {
-    templateUrl: '/js/components/app-title/index.html',
-    controller: function () {
-    }
-  })
-
-})();
+angular.module('MyApp').component('appTitle', {
+  templateUrl: '/js/components/app-title/index.html',
+  controller: function () {
+  }
+})

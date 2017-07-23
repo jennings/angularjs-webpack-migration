@@ -5,25 +5,15 @@
 
 <h2>Bundling JavaScript</h2>
 <p>
-    The JavaScript is bundled using a gulp task. The task searches for
-    files matching the following patterns:
-</p>
-<ul>
-    <li><code>node_modules/jquery/dist/jquery.js</code></li>
-    <li><code>node_modules/boostrap/dist/js/bootstrap.js</code></li>
-    <li><code>node_modules/angular/angular.js</code></li>
-    <li><code>src/app.js</code></li>
-    <li><code>src/**/*.js</code></li>
-</ul>
-<p>
-    Files matching those patterns are concatenated, minified, then bundled into
-    a single file named <code>bundle.js</code>.
+    The JavaScript is bundled using webpack. The npm package
+    <code>webpack-stream</code> creates a gulp stream out of webpack's output.
 </p>
 <p>
-    <strong>The order of those files matters</strong>; Bootstrap cannot load
-    until jQuery does, and none of the components can load until
-    <code>app.js</code> does, since that's where our AngularJS module is
-    declared.
+    webpack knows the entry point of the application, and it follows the calls
+    to <code>require()</code> to learn what other files need to be bundled.
+    This means the build script no longer needs to know what order to bundle
+    files. As long as <code>require()</code> is used at the right places, files
+    will be bundled in a correct order.
 </p>
 
 <h2>Compiling templates</h2>

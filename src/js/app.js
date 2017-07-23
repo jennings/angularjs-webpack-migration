@@ -1,12 +1,13 @@
-;(function () {
+// Importing our dependencies here ensures they've loaded in the correct order.
+// This is more visible than encoding this information in the gulpfile.
+window.jQuery = require('jquery')
+require('bootstrap/dist/js/bootstrap.min.js')
+var angular = require('angular')
 
-  // We create the module here, but we have no idea what other
-  // components are going to be included. The list of all
-  // components/scripts/etc. are encoded in the gulpfile.
+var myApp = angular.module('MyApp', [])
 
-  // We're also trusting that AngularJS, jQuery, and anything else we
-  // depend on have also already been included.
+// By importing our components here, we can guarantee that the MyApp module is
+// loaded before they run.
+require('./components/app-title')
+require('./components/app-body')
 
-  var myApp = angular.module('MyApp', [])
-
-})();

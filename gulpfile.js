@@ -1,5 +1,6 @@
 var gulp = require('gulp')
 var streamqueue = require('streamqueue')
+var sourcemaps = require('gulp-sourcemaps')
 var concat = require('gulp-concat')
 var uglify = require('gulp-uglify')
 var pump = require('pump')
@@ -14,6 +15,8 @@ var input = {
     'src/**/*.scss',
   ],
   js: [
+    // The order the files are included is important, e.g., app.js needs
+    // to create our AngularJS module before the components add to it.
     'node_modules/jquery/dist/jquery.js',
     'node_modules/boostrap/dist/js/bootstrap.js',
     'node_modules/angular/angular.js',
@@ -40,9 +43,10 @@ var output = {
 
 gulp.task('default', ['serve'])
 
-var sourcemaps = require('gulp-sourcemaps')
-
 gulp.task('js', function (done) {
+
+  // Using streamqueue so we are sure to include app.js to create the
+  // AngularJS module before we add to its template cache.
   var scripts = streamqueue({ objectMode: true })
   scripts.queue(gulp.src(input.js))
   scripts.queue(getTemplateStream())
@@ -82,23 +86,18 @@ gulp.task('css', function (done) {
   )
 })
 
-gulp.task('html', function () {
-  gulp.src(input.html)
-    .pipe(gulp.dest(output.path))
-})
-
-gulp.task('build', ['js', 'css', 'html'])
+gulp.task('build', ['js', 'css'])
 
 gulp.task('js-reload', ['js'], function () {
   browserSync.reload()
 })
 
-gulp.task('watch', ['build'], function (done) {
+gulp.task('watch', ['build'], function () {
   browserSync.reload()
-  done()
 })
 
 gulp.task('serve', ['build'], function () {
+  // Browsersync serves whatever is built into the output
   browserSync.init({
     server: ["./dist"],
     port: 8000,
@@ -106,8 +105,9 @@ gulp.task('serve', ['build'], function () {
     reloadDelay: 0
   })
 
+  // We have to carefully set up the detection of changed files, so we
+  // can automatically reload the page with Browsersync
   gulp.watch(input.js.concat(input.templates), ['js-reload'])
   gulp.watch(input.scss, ['css'])
-  gulp.watch(input.html, ['html'])
   gulp.watch(output.html_watch).on('change', browserSync.reload)
 })

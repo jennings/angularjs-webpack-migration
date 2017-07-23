@@ -8,6 +8,7 @@ var browserSync = require('browser-sync').create()
 
 var input = {
   scss: [
+    'node_modules/boostrap/dist/css/bootstrap.min.css',
     'src/**/*.scss',
   ],
   js: [
@@ -16,6 +17,9 @@ var input = {
     'node_modules/angular/angular.js',
     'src/**/*.js',
   ],
+  html: [
+    'src/**/*.html'
+  ],
 }
 
 var output = {
@@ -23,6 +27,9 @@ var output = {
   js: 'js/bundle.js',
   scss: 'css/bundle.scss',
   css: 'css/bundle.css',
+  html_watch: [
+    'dist/**/*.html'
+  ],
 }
 
 gulp.task('default', ['serve'])
@@ -38,6 +45,7 @@ gulp.task('js', function (done) {
     done
   )
 })
+
 gulp.task('css', function (done) {
   pump(
     [
@@ -51,7 +59,12 @@ gulp.task('css', function (done) {
   )
 })
 
-gulp.task('build', ['js', 'css'])
+gulp.task('html', function () {
+  gulp.src(input.html)
+    .pipe(gulp.dest(output.path))
+})
+
+gulp.task('build', ['js', 'css', 'html'])
 
 gulp.task('js-reload', ['js'], function () {
   browserSync.reload()
@@ -64,7 +77,7 @@ gulp.task('watch', ['build'], function (done) {
 
 gulp.task('serve', ['build'], function () {
   browserSync.init({
-    server: ["./src", "./dist", "./node_modules"],
+    server: ["./dist"],
     port: 8000,
     middleware: [],
     reloadDelay: 0
@@ -72,4 +85,6 @@ gulp.task('serve', ['build'], function () {
 
   gulp.watch(input.js, ['js-reload'])
   gulp.watch(input.scss, ['css'])
+  gulp.watch(input.html, ['html'])
+  gulp.watch(output.html_watch).on('change', browserSync.reload)
 })

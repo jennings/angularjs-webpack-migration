@@ -2,12 +2,13 @@ var gulp = require('gulp')
 var concat = require('gulp-concat')
 var uglify = require('gulp-uglify')
 var pump = require('pump')
+var sass = require('gulp-sass')
 
 var browserSync = require('browser-sync').create()
 
 var input = {
-  css: [
-    'src/**/*.css',
+  scss: [
+    'src/**/*.scss',
   ],
   js: [
     'node_modules/jquery/dist/jquery.js',
@@ -20,13 +21,40 @@ var input = {
 var output = {
   path: './dist/',
   js: 'js/bundle.js',
+  scss: 'css/bundle.scss',
   css: 'css/bundle.css',
 }
 
 gulp.task('default', ['serve'])
 
-gulp.task('build', function (done) {
-  bundleJavaScript().then(done)
+gulp.task('js', function (done) {
+  pump(
+    [
+      gulp.src(input.js),
+      concat(output.js),
+      uglify(),
+      gulp.dest(output.path),
+    ],
+    done
+  )
+})
+gulp.task('css', function (done) {
+  pump(
+    [
+      gulp.src(input.scss),
+      sass(),
+      concat(output.css),
+      gulp.dest(output.path),
+      browserSync.stream(),
+    ],
+    done
+  )
+})
+
+gulp.task('build', ['js', 'css'])
+
+gulp.task('js-reload', ['js'], function () {
+  browserSync.reload()
 })
 
 gulp.task('watch', ['build'], function (done) {
@@ -42,19 +70,6 @@ gulp.task('serve', ['build'], function () {
     reloadDelay: 0
   })
 
-  gulp.watch(input.js, ['watch'])
+  gulp.watch(input.js, ['js-reload'])
+  gulp.watch(input.scss, ['css'])
 })
-
-function bundleJavaScript() {
-  return new Promise(function (resolve) {
-    pump(
-      [
-        gulp.src(input.js),
-        concat(output.js),
-        uglify(),
-        gulp.dest(output.path),
-      ],
-      resolve
-    )
-  })
-}

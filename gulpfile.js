@@ -3,8 +3,9 @@ var streamqueue = require('streamqueue')
 var sourcemaps = require('gulp-sourcemaps')
 var concat = require('gulp-concat')
 var pump = require('pump')
-var sass = require('gulp-sass')
 var angularTemplatecache = require('gulp-angular-templatecache')
+
+var webpack = require('webpack')
 var webpackStream = require('webpack-stream')
 var webpackConfig = require('./webpack.config.js')
 
@@ -40,15 +41,15 @@ gulp.task('default', ['serve'])
 
 gulp.task('js', function () {
 
-  // Using streamqueue so we are sure to include app.js to create the
-  // AngularJS module before we add to its template cache.
+  // Using streamqueue so we are sure to AngularJS before we add to its
+  // template cache.
   var scripts = streamqueue({ objectMode: true })
 
   // We're using webpack to bundle the JavaScript files rather than manually
   // concatenating and uglifying them. webpack automatically runs uglify during
   // production builds.
   scripts.queue(gulp.src(webpackConfig.entry)
-    .pipe(webpackStream(webpackConfig)))
+    .pipe(webpackStream(webpackConfig, webpack)))
 
   // Templates are not yet part of the webpack bundle, so we still have to
   // concat them manually
@@ -68,25 +69,12 @@ function getTemplateStream() {
     }))
 }
 
-gulp.task('css', function (done) {
-  pump(
-    [
-      gulp.src(input.scss),
-      sass(),
-      concat(output.css),
-      gulp.dest(output.path),
-      browserSync.stream(),
-    ],
-    done
-  )
-})
-
 gulp.task('html', function () {
   return gulp.src(input.html)
     .pipe(gulp.dest(output.path))
 })
 
-gulp.task('build', ['js', 'css', 'html'])
+gulp.task('build', ['js', 'html'])
 
 gulp.task('serve', ['build'], function () {
   // Browsersync serves whatever is built into the output
@@ -103,6 +91,5 @@ gulp.task('serve', ['build'], function () {
     input.js.concat(input.templates),
     ['js'])
     .on('change', browserSync.reload)
-  gulp.watch(input.scss, ['css'])
   gulp.watch(input.html, ['html']).on('change', browserSync.reload)
 })

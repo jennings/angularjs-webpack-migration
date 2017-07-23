@@ -25,23 +25,46 @@
 
 <h2>CSS</h2>
 <p>
-    Any files matching the following patterns are fed to
-    <code>gulp-sass</code>:
+    webpack bundles CSS. <code>app.js</code> imports the SCSS file as though it
+    were a JavaScript file:
+</p>
+<pre><code>
+    require('../css/app.scss')
+</code></pre>
+<p>
+    webpack understands this is a Sass file because of this module rule:
+</p>
+<pre><code>
+    module: {
+      rules: [
+        {
+          test: /\.s?css$/,
+          use: [
+            'style-loader',
+            'css-loader',
+            'sass-loader',
+          ]
+        }
+      ]
+    }
+</code></pre>
+<p>
+    Any file matching the test regex will be fed into three loaders in
+    sequence:
 </p>
 <ul>
-    <li><code>node_modules/boostrap/dist/css/bootstrap.min.css</code></li>
-    <li><code>src/**/*.scss</code></li>
+    <li>
+        <code>sass-loader</code> compiles Sass to standard CSS.
+    </li>
+    <li>
+        <code>css-loader</code> reads CSS and finds any <code>url()</code> or
+        <code>@import</code> references, and bundles those as modules.
+    </li>
+    <li>
+        <code>style-loader</code> turns the CSS into a format that can be
+        loaded at runtime.
+    </li>
 </ul>
-<p>
-    The output of <code>gulp-sass</code> is concatenated and saved to
-    <code>bundle.css</code>.
-</p>
-<p>
-    Again, <strong>the order of bundling matters</strong>. Styles defined in
-    later stylesheets override those in previous ones. If we had many SCSS
-    files, we could run into issues where they don't get concatenated in the
-    order we expect.
-</p>
 
 <h2>Development server</h2>
 <p>

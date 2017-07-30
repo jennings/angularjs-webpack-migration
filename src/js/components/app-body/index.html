@@ -2,12 +2,64 @@
     This project is a demonstration of how to migrate an AngularJS app from
     a hand-spun build process to webpack.
 </p>
+
+<h2>Bundling JavaScript</h2>
 <p>
-    The project will begin by using gulp to create a custom build script to
-    concatenate and minify the JavaScript, copy files into place, etc.
+    The JavaScript is bundled using a gulp task. The task searches for
+    files matching the following patterns:
+</p>
+<ul>
+    <li><code>node_modules/jquery/dist/jquery.js</code></li>
+    <li><code>node_modules/boostrap/dist/js/bootstrap.js</code></li>
+    <li><code>node_modules/angular/angular.js</code></li>
+    <li><code>src/app.js</code></li>
+    <li><code>src/**/*.js</code></li>
+</ul>
+<p>
+    Files matching those patterns are concatenated, minified, then bundled into
+    a single file named <code>bundle.js</code>.
 </p>
 <p>
-    Then, the project will be converted step-by-step to using webpack as
-    the main build tool. Gulp may still be used, but the application
-    bundling should all be handled by webpack.
+    <strong>The order of those files matters</strong>; Bootstrap cannot load
+    until jQuery does, and none of the components can load until
+    <code>app.js</code> does, since that's where our AngularJS module is
+    declared.
+</p>
+
+<h2>Compiling templates</h2>
+<p>
+    The AngularJS templates are compiled and added to the template cache by the
+    npm package <code>gulp-angular-templatecache</code>. The output of that
+    plugin is concatenated with the rest of the JavaScript before minification.
+</p>
+
+<h2>CSS</h2>
+<p>
+    Any files matching the following patterns are fed to
+    <code>gulp-sass</code>:
+</p>
+<ul>
+    <li><code>node_modules/boostrap/dist/css/bootstrap.min.css</code></li>
+    <li><code>src/**/*.scss</code></li>
+</ul>
+<p>
+    The output of <code>gulp-sass</code> is concatenated and saved to
+    <code>bundle.css</code>.
+</p>
+<p>
+    Again, <strong>the order of bundling matters</strong>. Styles defined in
+    later stylesheets override those in previous ones. If we had many SCSS
+    files, we could run into issues where they don't get concatenated in the
+    order we expect.
+</p>
+
+<h2>Development server</h2>
+<p>
+    The development server is Browsersync. Once all the JavaScript, CSS, and
+    other assets are bundled and placed in <code>./dist</code>,
+    Browsersync serves files out of that directory.
+</p>
+<p>
+    A gulp watch is placed on the input files. If any change, the appropriate
+    gulp task is executed, then Browsersync reloads the page in the browser.
 </p>

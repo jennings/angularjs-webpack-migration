@@ -1,3 +1,13 @@
+$background-color: #eee;
+$width: 600px;
+$line-height: 1.4;
+$font-size: 16px;
+
 body {
-    background-color: #eee;
+    background-color: $background-color;
+    width: $width;
+    line-height: $line-height;
+    font-size: $font-size;
+    margin-left: auto;
+    margin-right: auto;
 }

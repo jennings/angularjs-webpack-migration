@@ -36,9 +36,6 @@ var output = {
   js: 'js/bundle.js',
   scss: 'css/bundle.scss',
   css: 'css/bundle.css',
-  html_watch: [
-    'dist/**/*.html'
-  ],
 }
 
 gulp.task('default', ['serve'])
@@ -86,15 +83,12 @@ gulp.task('css', function (done) {
   )
 })
 
-gulp.task('build', ['js', 'css'])
-
-gulp.task('js-reload', ['js'], function () {
-  browserSync.reload()
+gulp.task('html', function () {
+  return gulp.src(input.html)
+    .pipe(gulp.dest(output.path))
 })
 
-gulp.task('watch', ['build'], function () {
-  browserSync.reload()
-})
+gulp.task('build', ['js', 'css', 'html'])
 
 gulp.task('serve', ['build'], function () {
   // Browsersync serves whatever is built into the output
@@ -107,7 +101,10 @@ gulp.task('serve', ['build'], function () {
 
   // We have to carefully set up the detection of changed files, so we
   // can automatically reload the page with Browsersync
-  gulp.watch(input.js.concat(input.templates), ['js-reload'])
+  gulp.watch(
+    input.js.concat(input.templates),
+    ['js'])
+    .on('change', browserSync.reload)
   gulp.watch(input.scss, ['css'])
-  gulp.watch(output.html_watch).on('change', browserSync.reload)
+  gulp.watch(input.html, ['html']).on('change', browserSync.reload)
 })
